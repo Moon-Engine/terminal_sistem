@@ -196,10 +196,10 @@
             <div class="collapse navbar-collapse" id="navbarContenido">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link active" href="#">[ NÚCLEO ]</a>
+                        <a class="nav-link active" href="inicio.html">[ NÚCLEO ]</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">[ REDES ]</a>
+                        <a class="nav-link" href="tareas.html">[ DIRECTIVAS ]</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#">[ SEGURIDAD ]</a>
@@ -208,10 +208,9 @@
 
                 <div class="d-flex align-items-lg-center flex-column flex-lg-row">
                     <span class="navbar-text me-lg-3 mb-2 mb-lg-0 text-white">
-                        OP: Angel Bri_
+                        OP: <span id="nav-op-name"></span>_
                     </span>
-                    <a href="#" class="nav-link text-danger"
-                        onclick="alert('CERRANDO CONEXIÓN SECORES...'); window.location.reload();">
+                    <a href="#" class="nav-link text-danger" id="logout-btn">
                         [ CERRAR_SESIÓN ]
                     </a>
                 </div>
@@ -253,8 +252,8 @@
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <h5>> USUARIO ACTUAL_</h5>
-                        <p class="m-0 text-white ps-2">OPERARIO: C. JENSEN</p>
-                        <p class="m-0 text-white ps-2">ID: 01233425578</p>
+                        <p class="m-0 text-white ps-2">OPERARIO: <span id="session-username">C. JENSEN</span></p>
+                        <p class="m-0 text-white ps-2">EMAIL: <span id="session-email">01233425578</span></p>
                     </div>
                     <div class="col-md-6 mb-3">
                         <h5>> ACCESO RECIENTE_</h5>
@@ -307,8 +306,34 @@
         </div>
     </div>
 
+    <script src="js/jquery.min.js"></script>
     <script src="js/bootstrap.bundle.min.js"></script>
     <script src="cordova.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Verificar sesión activa
+            let currentUser = JSON.parse(localStorage.getItem('sector4_logged_in_user'));
+            if (!currentUser) {
+                alert("> ERROR DE ACCESO: OPERARIO NO IDENTIFICADO. REDIRIGIENDO A ACCESO.");
+                window.location.href = "index.html";
+                return;
+            }
+
+            // Actualizar interfaz con datos del usuario
+            $('#nav-op-name').text(currentUser.user);
+            $('#session-username').text(currentUser.user);
+            $('#session-email').text(currentUser.email);
+
+            // Cerrar sesión
+            $('#logout-btn').click(function (e) {
+                e.preventDefault();
+                if (confirm('> ¿CONFIRMA CERRAR CONEXIÓN CON EL SISTEMA CENTRAL?')) {
+                    localStorage.removeItem('sector4_logged_in_user');
+                    window.location.href = "index.html";
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>

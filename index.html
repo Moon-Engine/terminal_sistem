@@ -202,47 +202,16 @@
     <script src="js/jquery.min.js"></script>
     <script>
         $(document).ready(function () {
-            // Animación simple de inicio del sistema
-            $('.terminal-container').hide().fadeIn(1500);
+            // Verificar si ya hay una sesión activa
+            let currentUser = localStorage.getItem('sector4_logged_in_user');
+            if (currentUser) {
+                console.log("> SESIÓN DETECTADA.");
+                window.location.href = "inicio.html";
+                return;
+            }
 
-            // Alternar entre Login y Registro
-            $('#show-register').click(function () {
-                $('#login-section').slideUp(300, function () {
-                    $('#register-section').slideDown(300);
-                });
-            });
-
-            $('#show-login').click(function () {
-                $('#register-section').slideUp(300, function () {
-                    $('#login-section').slideDown(300);
-                });
-            });
-
-            // Interceptar el Login para tu futura API
-            $('#login-form').submit(function (e) {
-                e.preventDefault();
-                let user = $('#loginUser').val();
-                let pass = $('#loginPass').val();
-
-                // Aquí irá tu llamada AJAX
-                console.log("Intentando acceder a la API con:", user);
-                alert("> PROCESANDO SOLICITUD... ESPERANDO RESPUESTA DEL SERVIDOR.");
-            });
-
-            // Interceptar el Registro para tu futura API
-            $('#register-form').submit(function (e) {
-                e.preventDefault();
-                // Aquí irá tu llamada AJAX para el registro
-                alert("> CREANDO PERFIL EN LA BASE DE DATOS... NO APAGUE EL EQUIPO.");
-            });
-        });
-        $(document).ready(function () {
             // 1. Cargar el sonido del teclado
-            // He puesto una URL de prueba, pero te recomiendo descargar tu propio sonido corto (.mp3) 
-            // y poner la ruta local de tu proyecto, por ejemplo: 'assets/tecla-mecanica.mp3'
             const sonidoTecla = new Audio('https://cdn.freesound.org/previews/256/256543_4486188-lq.mp3');
-
-            // Bajar un poco el volumen para que no sature
             sonidoTecla.volume = 0.5;
 
             // 2. Escuchar el evento de presionar teclas en los inputs
@@ -252,19 +221,14 @@
                     return;
                 }
 
-                // Reiniciar el tiempo del audio a 0. 
-                // Esto es súper importante para que el sonido no se retrase cuando escribes muy rápido.
+                // Reiniciar el tiempo del audio a 0.
                 sonidoTecla.currentTime = 0;
 
                 // Reproducir el sonido
                 sonidoTecla.play().catch(function () {
-                    // Nota: Los navegadores modernos bloquean el audio hasta que el usuario 
-                    // hace clic por primera vez en la página por políticas de "Autoplay".
-                    // Una vez que el usuario haga clic en el input, el sonido funcionará.
+                    // Autoplay prevenido
                 });
             });
-
-            // --- EL RESTO DEL CÓDIGO QUE YA TENÍAMOS ---
 
             // Animación simple de inicio del sistema
             $('.terminal-container').hide().fadeIn(1500);
@@ -282,62 +246,65 @@
                 });
             });
 
-            // Interceptar el Login
-            // Asegúrate de poner la URL real de tu servidor PHP
-            const API_URL = "https://tu-servidor.com/api.php";
+            // Inicializar la base de datos de usuarios si no existe
+            if (!localStorage.getItem('sector4_users')) {
+                localStorage.setItem('sector4_users', JSON.stringify([]));
+            }
 
             // Interceptar el Login
             $('#login-form').submit(function (e) {
                 e.preventDefault();
-                let user = $('#loginUser').val();
+                let user = $('#loginUser').val().trim();
                 let pass = $('#loginPass').val();
 
-                console.log("> PROCESANDO SOLICITUD...");
+                console.log("> PROCESANDO SOLICITUD DE LOGIN PARA:", user);
 
-                $.ajax({
-                    url: API_URL + "?action=login",
-                    type: "POST",
-                    contentType: "application/json",
-                    data: JSON.stringify({ user: user, pass: pass }),
-                    success: function (response) {
-                        alert(response.message);
-                        if (response.status === "success") {
-                            // Aquí puedes redirigir a otra página interna de tu app Cordova
-                            // window.location.href = "dashboard.html";
-                        }
-                    },
-                    error: function () {
-                        alert("> ERROR CRÍTICO DE COMUNICACIÓN CON EL SERVIDOR.");
-                    }
-                });
+                let users = JSON.parse(localStorage.getItem('sector4_users')) || [];
+                let matchedUser = users.find(u => u.user.toLowerCase() === user.toLowerCase() && u.pass === pass);
+
+                if (matchedUser) {
+                    alert("> ACCESO AUTORIZADO. BIENVENIDO AL NÚCLEO DEL SECTOR 4.");
+                    localStorage.setItem('sector4_logged_in_user', JSON.stringify({
+                        user: matchedUser.user,
+                        email: matchedUser.email
+                    }));
+                    window.location.href = "inicio.html";
+                } else {
+                    alert("> ERROR DE ACCESO: CREDENCIALES INCORRECTAS O REGISTRO INEXISTENTE.");
+                }
             });
 
             // Interceptar el Registro
             $('#register-form').submit(function (e) {
                 e.preventDefault();
-                let user = $('#regUser').val();
-                let email = $('#regEmail').val();
+                let user = $('#regUser').val().trim();
+                let email = $('#regEmail').val().trim();
                 let pass = $('#regPass').val();
 
-                console.log("> CREANDO PERFIL...");
+                console.log("> PROCESANDO REGISTRO...");
 
-                $.ajax({
-                    url: API_URL + "?action=registro",
-                    type: "POST",
-                    contentType: "application/json",
-                    data: JSON.stringify({ user: user, email: email, pass: pass }),
-                    success: function (response) {
-                        alert(response.message);
-                        if (response.status === "success") {
-                            // Volver a la pantalla de login si el registro fue exitoso
-                            $('#show-login').click();
-                            $('#register-form')[0].reset(); // Limpiar formulario
-                        }
-                    },
-                    error: function () {
-                        alert("> ERROR CRÍTICO DE COMUNICACIÓN CON EL SERVIDOR.");
-                    }
+                let users = JSON.parse(localStorage.getItem('sector4_users')) || [];
+
+                // Verificar si el usuario ya existe
+                let exists = users.some(u => u.user.toLowerCase() === user.toLowerCase());
+                if (exists) {
+                    alert("> ERROR: EL IDENTIFICADOR DE USUARIO YA ESTÁ REGISTRADO EN EL SECTOR.");
+                    return;
+                }
+
+                // Guardar usuario en la base de datos local
+                users.push({
+                    user: user,
+                    email: email,
+                    pass: pass
                 });
+                localStorage.setItem('sector4_users', JSON.stringify(users));
+
+                alert("> REGISTRO EXITOSO. CREDENCIALES CONFIGURADAS. VUELVA A LOGUEARSE.");
+
+                // Limpiar formulario y volver a Login
+                $('#register-form')[0].reset();
+                $('#show-login').click();
             });
         });
     </script>
