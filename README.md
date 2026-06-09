@@ -28,23 +28,8 @@ Un sistema interactivo de control de terminal retro con efecto CRT, simulador de
 
 ---
 
-## 🛠️ Instalación y Uso Local
+## Integrantes:
 
-Este proyecto no requiere de bases de datos externas ni de compilación compleja para probarse localmente.
-
-### Opción A: Ejecución Directa
-1. Clona este repositorio o descarga los archivos.
-2. Haz doble clic en [index.html](file:///c:/xampp/htdocs/proyectos/proyectos/terminal_sistem/index.html) para abrirlo directamente en tu navegador web.
-
-### Opción B: A través de XAMPP (Localhost)
-1. Coloca la carpeta del proyecto en `C:\xampp\htdocs\terminal_sistem`.
-2. Inicia el servidor Apache desde el panel de control de XAMPP.
-3. Navega a: `http://localhost/terminal_sistem/index.html`.
-
----
-
-## 📝 Registro de Cambios Recientes
-
-*   **Aislamiento de Registros por Operario:** Se actualizó `tareas.html` para enlazar cada directiva registrada al nombre de usuario activo, impidiendo que otros operarios visualicen o manipulen registros ajenos.
-*   **Migración Automática de Datos:** El sistema migra de forma transparente cualquier directiva antigua previamente guardada sin dueño y la asigna al primer usuario que inicie sesión, evitando pérdidas de datos.
-*   **Actualización Dinámica de Cabecera:** Limpieza de nombres harcodeados en el header para mostrar en tiempo real la firma de usuario logueado en todas las vistas de la terminal.
+* angel Briseño
+* Sofia Suarez
+* Martin salasar
