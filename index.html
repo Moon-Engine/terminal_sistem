@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self' data: gap: https://ssl.gstatic.com 'unsafe-eval';
+    style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; 
+    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com;
+    font-src 'self' data: https://cdnjs.cloudflare.com https://fonts.gstatic.com;
+    connect-src 'self' https://*.trycloudflare.com;
+    ">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Terminal de Acceso - Sector 4</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+
+    <style>
+        /* Variables de color: Rojo óxido / Naranja de emergencia */
+        :root {
+            --term-color: #ff3300;
+            --term-bg: #050505;
+            --term-glow: 0 0 10px rgba(255, 51, 0, 0.8);
+        }
+
+        body,
+        html {
+            height: 100%;
+            margin: 0;
+            background-color: var(--term-bg);
+            color: var(--term-color);
+            font-family: 'VT323', monospace;
+            overflow: hidden;
+            font-size: 1.2rem;
+        }
+
+        /* Efecto de pantalla CRT (Scanlines) */
+        .crt-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+                linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 3px, 3px 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        /* Parpadeo de monitor dañado */
+        .flicker {
+            animation: crt-flicker 0.15s infinite;
+        }
+
+        @keyframes crt-flicker {
+            0% {
+                opacity: 0.95;
+                text-shadow: var(--term-glow);
+            }
+
+            50% {
+                opacity: 1;
+                text-shadow: 0 0 15px rgba(255, 51, 0, 1);
+            }
+
+            100% {
+                opacity: 0.9;
+                text-shadow: var(--term-glow);
+            }
+        }
+
+        /* Contenedor principal */
+        .terminal-container {
+            border: 2px solid var(--term-color);
+            box-shadow: inset 0 0 20px rgba(255, 51, 0, 0.5), 0 0 20px rgba(255, 51, 0, 0.3);
+            background-color: rgba(10, 0, 0, 0.8);
+            padding: 2rem;
+            margin-top: 10vh;
+            position: relative;
+        }
+
+        .terminal-container::before {
+            content: "SISTEMA COMPROMETIDO";
+            position: absolute;
+            top: -15px;
+            left: 20px;
+            background: var(--term-bg);
+            padding: 0 10px;
+            font-size: 1rem;
+        }
+
+        /* Estilos de Bootstrap sobreescritos */
+        .form-control {
+            background-color: transparent !important;
+            border: 1px solid var(--term-color);
+            color: var(--term-color) !important;
+            border-radius: 0;
+            box-shadow: none !important;
+            font-family: 'VT323', monospace;
+            font-size: 1.5rem;
+        }
+
+        .form-control:focus {
+            border-color: #ffcc00;
+            box-shadow: 0 0 10px rgba(255, 204, 0, 0.5) !important;
+            color: #ffcc00 !important;
+        }
+
+        .btn-terminal {
+            background-color: var(--term-color);
+            color: #000;
+            border: none;
+            border-radius: 0;
+            font-family: 'VT323', monospace;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            font-weight: bold;
+            width: 100%;
+            transition: all 0.2s ease;
+        }
+
+        .btn-terminal:hover {
+            background-color: #ffcc00;
+            color: #000;
+            box-shadow: 0 0 15px rgba(255, 204, 0, 0.8);
+        }
+
+        .form-text {
+            color: #cc2900;
+        }
+
+        /* Animación de Glitch en los títulos */
+        .glitch {
+            position: relative;
+        }
+
+        .toggle-link {
+            color: #ffcc00;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        .toggle-link:hover {
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="crt-overlay"></div>
+
+    <div class="container d-flex justify-content-center align-items-center">
+        <div class="col-md-6 terminal-container flicker">
+
+            <div id="login-section">
+                <h2 class="glitch mb-4">> INICIAR SESIÓN_</h2>
+                <form id="login-form">
+                    <div class="mb-3">
+                        <label for="loginUser" class="form-label">> IDENTIFICACIÓN DE EMPLEADO</label>
+                        <input type="text" class="form-control" id="loginUser" required autocomplete="off">
+                    </div>
+                    <div class="mb-4">
+                        <label for="loginPass" class="form-label">> CLAVE DE ACCESO</label>
+                        <input type="password" class="form-control" id="loginPass" required>
+                        <div class="form-text">Advertencia: Terminales no autorizadas serán bloqueadas.</div>
+                    </div>
+                    <button type="submit" class="btn btn-terminal">EJECUTAR / LOGIN</button>
+                </form>
+                <div class="mt-4 text-center">
+                    <p>> ¿Unidad nueva? <span class="toggle-link" id="show-register">Registrar credenciales_</span></p>
+                </div>
+            </div>
+
+            <div id="register-section" style="display: none;">
+                <h2 class="glitch mb-4">> ALTA DE PERSONAL_</h2>
+                <form id="register-form">
+                    <div class="mb-3">
+                        <label for="regUser" class="form-label">> NUEVA IDENTIFICACIÓN</label>
+                        <input type="text" class="form-control" id="regUser" required autocomplete="off">
+                    </div>
+                    <div class="mb-3">
+                        <label for="regEmail" class="form-label">> CANAL DE COMUNICACIÓN (EMAIL)</label>
+                        <input type="email" class="form-control" id="regEmail" required autocomplete="off">
+                    </div>
+                    <div class="mb-4">
+                        <label for="regPass" class="form-label">> ASIGNAR CLAVE</label>
+                        <input type="password" class="form-control" id="regPass" required>
+                    </div>
+                    <button type="submit" class="btn btn-terminal">INICIALIZAR / REGISTRO</button>
+                </form>
+                <div class="mt-4 text-center">
+                    <p>> ¿Ya tiene acceso? <span class="toggle-link" id="show-login">Volver a inicio_</span></p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="cordova.js"></script>
+    <script src="js/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Animación simple de inicio del sistema
+            $('.terminal-container').hide().fadeIn(1500);
+
+            // Alternar entre Login y Registro
+            $('#show-register').click(function () {
+                $('#login-section').slideUp(300, function () {
+                    $('#register-section').slideDown(300);
+                });
+            });
+
+            $('#show-login').click(function () {
+                $('#register-section').slideUp(300, function () {
+                    $('#login-section').slideDown(300);
+                });
+            });
+
+            // Interceptar el Login para tu futura API
+            $('#login-form').submit(function (e) {
+                e.preventDefault();
+                let user = $('#loginUser').val();
+                let pass = $('#loginPass').val();
+
+                // Aquí irá tu llamada AJAX
+                console.log("Intentando acceder a la API con:", user);
+                alert("> PROCESANDO SOLICITUD... ESPERANDO RESPUESTA DEL SERVIDOR.");
+            });
+
+            // Interceptar el Registro para tu futura API
+            $('#register-form').submit(function (e) {
+                e.preventDefault();
+                // Aquí irá tu llamada AJAX para el registro
+                alert("> CREANDO PERFIL EN LA BASE DE DATOS... NO APAGUE EL EQUIPO.");
+            });
+        });
+        $(document).ready(function () {
+            // 1. Cargar el sonido del teclado
+            // He puesto una URL de prueba, pero te recomiendo descargar tu propio sonido corto (.mp3) 
+            // y poner la ruta local de tu proyecto, por ejemplo: 'assets/tecla-mecanica.mp3'
+            const sonidoTecla = new Audio('https://cdn.freesound.org/previews/256/256543_4486188-lq.mp3');
+
+            // Bajar un poco el volumen para que no sature
+            sonidoTecla.volume = 0.5;
+
+            // 2. Escuchar el evento de presionar teclas en los inputs
+            $('input').on('keydown', function (e) {
+                // Evitar que suene al presionar teclas de control como Shift, Ctrl, Alt
+                if (e.key === 'Shift' || e.key === 'Control' || e.key === 'Alt' || e.key === 'Tab') {
+                    return;
+                }
+
+                // Reiniciar el tiempo del audio a 0. 
+                // Esto es súper importante para que el sonido no se retrase cuando escribes muy rápido.
+                sonidoTecla.currentTime = 0;
+
+                // Reproducir el sonido
+                sonidoTecla.play().catch(function () {
+                    // Nota: Los navegadores modernos bloquean el audio hasta que el usuario 
+                    // hace clic por primera vez en la página por políticas de "Autoplay".
+                    // Una vez que el usuario haga clic en el input, el sonido funcionará.
+                });
+            });
+
+            // --- EL RESTO DEL CÓDIGO QUE YA TENÍAMOS ---
+
+            // Animación simple de inicio del sistema
+            $('.terminal-container').hide().fadeIn(1500);
+
+            // Alternar entre Login y Registro
+            $('#show-register').click(function () {
+                $('#login-section').slideUp(300, function () {
+                    $('#register-section').slideDown(300);
+                });
+            });
+
+            $('#show-login').click(function () {
+                $('#register-section').slideUp(300, function () {
+                    $('#login-section').slideDown(300);
+                });
+            });
+
+            // Interceptar el Login
+            // Asegúrate de poner la URL real de tu servidor PHP
+            const API_URL = "https://tu-servidor.com/api.php";
+
+            // Interceptar el Login
+            $('#login-form').submit(function (e) {
+                e.preventDefault();
+                let user = $('#loginUser').val();
+                let pass = $('#loginPass').val();
+
+                console.log("> PROCESANDO SOLICITUD...");
+
+                $.ajax({
+                    url: API_URL + "?action=login",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify({ user: user, pass: pass }),
+                    success: function (response) {
+                        alert(response.message);
+                        if (response.status === "success") {
+                            // Aquí puedes redirigir a otra página interna de tu app Cordova
+                            // window.location.href = "dashboard.html";
+                        }
+                    },
+                    error: function () {
+                        alert("> ERROR CRÍTICO DE COMUNICACIÓN CON EL SERVIDOR.");
+                    }
+                });
+            });
+
+            // Interceptar el Registro
+            $('#register-form').submit(function (e) {
+                e.preventDefault();
+                let user = $('#regUser').val();
+                let email = $('#regEmail').val();
+                let pass = $('#regPass').val();
+
+                console.log("> CREANDO PERFIL...");
+
+                $.ajax({
+                    url: API_URL + "?action=registro",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify({ user: user, email: email, pass: pass }),
+                    success: function (response) {
+                        alert(response.message);
+                        if (response.status === "success") {
+                            // Volver a la pantalla de login si el registro fue exitoso
+                            $('#show-login').click();
+                            $('#register-form')[0].reset(); // Limpiar formulario
+                        }
+                    },
+                    error: function () {
+                        alert("> ERROR CRÍTICO DE COMUNICACIÓN CON EL SERVIDOR.");
+                    }
+                });
+            });
+        });
+    </script>
+
+</body>
+
+</html>

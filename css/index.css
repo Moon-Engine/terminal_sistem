@@ -1,0 +1,111 @@
+:root {
+            --term-color: #ff3300;
+            --term-bg: #050505;
+            --term-glow: 0 0 10px rgba(255, 51, 0, 0.8);
+        }
+
+        body, html {
+            height: 100%;
+            margin: 0;
+            background-color: var(--term-bg);
+            color: var(--term-color);
+            font-family: 'VT323', monospace;
+            overflow: hidden;
+            font-size: 1.2rem;
+        }
+
+        /* Efecto de pantalla CRT (Scanlines) */
+        .crt-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 3px, 3px 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        /* Parpadeo de monitor dañado */
+        .flicker {
+            animation: crt-flicker 0.15s infinite;
+        }
+
+        @keyframes crt-flicker {
+            0% { opacity: 0.95; text-shadow: var(--term-glow); }
+            50% { opacity: 1; text-shadow: 0 0 15px rgba(255, 51, 0, 1); }
+            100% { opacity: 0.9; text-shadow: var(--term-glow); }
+        }
+
+        /* Contenedor principal */
+        .terminal-container {
+            border: 2px solid var(--term-color);
+            box-shadow: inset 0 0 20px rgba(255, 51, 0, 0.5), 0 0 20px rgba(255, 51, 0, 0.3);
+            background-color: rgba(10, 0, 0, 0.8);
+            padding: 2rem;
+            margin-top: 10vh;
+            position: relative;
+        }
+
+        .terminal-container::before {
+            content: "SISTEMA COMPROMETIDO";
+            position: absolute;
+            top: -15px;
+            left: 20px;
+            background: var(--term-bg);
+            padding: 0 10px;
+            font-size: 1rem;
+        }
+
+        /* Estilos de Bootstrap sobreescritos */
+        .form-control {
+            background-color: transparent !important;
+            border: 1px solid var(--term-color);
+            color: var(--term-color) !important;
+            border-radius: 0;
+            box-shadow: none !important;
+            font-family: 'VT323', monospace;
+            font-size: 1.5rem;
+        }
+
+        .form-control:focus {
+            border-color: #ffcc00;
+            box-shadow: 0 0 10px rgba(255, 204, 0, 0.5) !important;
+            color: #ffcc00 !important;
+        }
+
+        .btn-terminal {
+            background-color: var(--term-color);
+            color: #000;
+            border: none;
+            border-radius: 0;
+            font-family: 'VT323', monospace;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            font-weight: bold;
+            width: 100%;
+            transition: all 0.2s ease;
+        }
+
+        .btn-terminal:hover {
+            background-color: #ffcc00;
+            color: #000;
+            box-shadow: 0 0 15px rgba(255, 204, 0, 0.8);
+        }
+
+        .form-text {
+            color: #cc2900;
+        }
+
+        /* Animación de Glitch en los títulos */
+        .glitch {
+            position: relative;
+        }
+        
+        .toggle-link {
+            color: #ffcc00;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        .toggle-link:hover {
+            color: #fff;
+        }

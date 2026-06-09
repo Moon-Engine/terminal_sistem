@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sector 4 - Panel de Directivas (CRUD)</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --term-color: #ff3300;
+            --term-bg: #050505;
+            --term-glow: 0 0 10px rgba(255, 51, 0, 0.8);
+            --term-green: #00ff66;
+        }
+
+        body,
+        html {
+            background-color: var(--term-bg);
+            color: var(--term-color);
+            font-family: 'VT323', monospace;
+            font-size: 1.3rem;
+            min-height: 100vh;
+        }
+
+        /* Efecto CRT Scanlines */
+        .crt-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+                linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 3px, 3px 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* Navbar Retro */
+        .navbar-retro {
+            border-bottom: 2px solid var(--term-color);
+            background-color: rgba(10, 0, 0, 0.9) !important;
+            box-shadow: 0 0 15px rgba(255, 51, 0, 0.3);
+        }
+
+        .navbar-retro .navbar-brand,
+        .navbar-retro .nav-link,
+        .navbar-retro .navbar-text {
+            color: var(--term-color) !important;
+            text-transform: uppercase;
+        }
+
+        .navbar-retro .nav-link:hover {
+            color: #fff !important;
+            text-shadow: var(--term-glow);
+        }
+
+        .navbar-toggler-retro {
+            border: 1px solid var(--term-color) !important;
+        }
+
+        .toggler-icon-custom {
+            display: inline-block;
+            width: 1.5em;
+            height: 1.5em;
+            vertical-align: middle;
+            background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='%23ff3300' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 100%;
+        }
+
+        /* Paneles estilo terminal */
+        .term-box {
+            border: 2px solid var(--term-color);
+            box-shadow: inset 0 0 15px rgba(255, 51, 0, 0.4), 0 0 15px rgba(255, 51, 0, 0.2);
+            background-color: rgba(10, 0, 0, 0.85);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .term-box::before {
+            content: attr(data-title);
+            position: absolute;
+            top: -13px;
+            left: 15px;
+            background: var(--term-bg);
+            padding: 0 8px;
+            font-size: 1rem;
+            letter-spacing: 1px;
+        }
+
+        /* Inputs de Formulario Retro */
+        .form-control {
+            background-color: transparent !important;
+            border: 1px solid var(--term-color);
+            color: var(--term-color) !important;
+            border-radius: 0;
+            box-shadow: none !important;
+            font-family: 'VT323', monospace;
+            font-size: 1.2rem;
+        }
+
+        .form-control:focus {
+            border-color: #ffcc00;
+            color: #ffcc00 !important;
+        }
+
+        /* Botones terminales */
+        .btn-term {
+            background-color: transparent;
+            color: var(--term-color);
+            border: 1px solid var(--term-color);
+            border-radius: 0;
+            font-family: 'VT323', monospace;
+            transition: all 0.2s;
+        }
+
+        .btn-term:hover {
+            background-color: var(--term-color);
+            color: #000;
+            box-shadow: 0 0 10px var(--term-color);
+        }
+
+        .btn-term-danger {
+            border-color: #ff3300;
+            color: #ff3300;
+        }
+
+        .btn-term-danger:hover {
+            background-color: #ff3300;
+            color: #000;
+        }
+
+        .btn-term-success {
+            border-color: var(--term-green);
+            color: var(--term-green);
+        }
+
+        .btn-term-success:hover {
+            background-color: var(--term-green);
+            color: #000;
+        }
+
+        /* --- SISTEMA DE REORDENAMIENTO RESPONSIVO (CSS Grid) --- */
+        .dashboard-grid {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .block-form {
+            order: 1;
+        }
+
+        /* El formulario va arriba en móviles */
+        .block-list {
+            order: 2;
+        }
+
+        /* La lista de tareas va abajo en móviles */
+
+        @media (min-width: 992px) {
+            .dashboard-grid {
+                display: grid;
+                grid-template-columns: 4fr 8fr;
+                /* 4 columnas form, 8 columnas lista */
+                grid-gap: 20px;
+            }
+
+            .block-form {
+                grid-column: 1;
+                order: unset;
+            }
+
+            .block-list {
+                grid-column: 2;
+                order: unset;
+            }
+        }
+
+        .table-retro {
+            color: var(--term-color);
+        }
+
+        .table-retro th {
+            border-bottom: 2px dashed var(--term-color) !important;
+        }
+
+        .table-retro td {
+            border-bottom: 1px dashed rgba(255, 51, 0, 0.3) !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="crt-overlay"></div>
+
+    <nav class="navbar navbar-expand-lg navbar-retro fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">> S4_DIRECTIVAS</a>
+            <button class="navbar-toggler navbar-toggler-retro" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarCRUD">
+                <span class="toggler-icon-custom"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarCRUD">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item"><a class="nav-link" href="#">[ NÚCLEO ]</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="#">[ DIRECTIVAS ]</a></li>
+                </ul>
+                <div class="d-flex align-items-lg-center flex-column flex-lg-row">
+                    <span class="navbar-text me-lg-3 text-white">OP: angel Bri_</span>
+                    <a href="#" class="nav-link text-danger" onclick="alert('CERRANDO TERMINAL...');">[ CERRAR_SESIÓN
+                        ]</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid p-4" style="margin-top: 75px;">
+
+        <div class="dashboard-grid">
+
+            <div class="term-box block-form" data-title="CONSOLA_DE_ENTRADA">
+                <h4 id="form-action-title">> ASIGNAR NUEVA DIRECTIVA</h4>
+                <form id="crud-form" class="mt-3">
+                    <input type="hidden" id="task-id">
+                    <div class="mb-3">
+                        <label class="form-label">> TÍTULO DE LA ACCIÓN</label>
+                        <input type="text" class="form-control" id="task-title" required autocomplete="off">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">> DESCRIPCIÓN OPERATIVA</label>
+                        <textarea class="form-control" id="task-desc" rows="3" required></textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">> FECHA LÍMITE DE ENTREGA</label>
+                        <input type="date" class="form-control" id="task-date" required>
+                    </div>
+
+                    <div class="row g-2">
+                        <div class="col-8">
+                            <button type="submit" id="btn-submit" class="btn btn-term btn-term-success w-100">EJECUTAR /
+                                INYECTAR</button>
+                        </div>
+                        <div class="col-4">
+                            <button type="button" id="btn-cancel" class="btn btn-term w-100" style="display:none;"
+                                onclick="resetForm()">ANULAR</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="term-box block-list" data-title="DIRECTIVAS_ALMACENADAS_EN_MEMORIA">
+                <div class="table-responsive">
+                    <table class="table table-dark table-retro bg-transparent m-0">
+                        <thead>
+                            <tr>
+                                <th style="width: 25%">DIRECTIVA</th>
+                                <th style="width: 45%">ESPECIFICACIONES</th>
+                                <th style="width: 15%">F. ENTREGA</th>
+                                <th style="width: 15%" class="text-center">ACCIONES</th>
+                            </tr>
+                        </thead>
+                        <tbody id="task-table-body">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="cordova.js"></script>
+
+    <script>
+        // Inicializador del almacenamiento local si está vacío
+        if (!localStorage.getItem('sector4_tasks')) {
+            localStorage.setItem('sector4_tasks', JSON.stringify([]));
+        }
+
+        $(document).ready(function () {
+            renderTasks();
+
+            // Control del Envío del Formulario (Crear y Editar)
+            $('#crud-form').submit(function (e) {
+                e.preventDefault();
+
+                let id = $('#task-id').val();
+                let title = $('#task-title').val();
+                let desc = $('#task-desc').val();
+                let date = $('#task-date').val();
+
+                let tasks = JSON.parse(localStorage.getItem('sector4_tasks'));
+
+                if (id === '') {
+                    // OPERACIÓN: CREAR (Insertar)
+                    let newTask = {
+                        id: Date.now(), // Generamos un ID único por tiempo
+                        title: title,
+                        desc: desc,
+                        date: date
+                    };
+                    tasks.push(newTask);
+                } else {
+                    // OPERACIÓN: ACTUALIZAR (Editar)
+                    tasks = tasks.map(t => {
+                        if (t.id == id) {
+                            t.title = title;
+                            t.desc = desc;
+                            t.date = date;
+                        }
+                        return t;
+                    });
+                }
+
+                localStorage.setItem('sector4_tasks', JSON.stringify(tasks));
+                resetForm();
+                renderTasks();
+            });
+        });
+
+        // FUNCIÓN PARA RENDERIZAR / LEER TAREAS (READ)
+        function renderTasks() {
+            let tasks = JSON.parse(localStorage.getItem('sector4_tasks'));
+            let rows = '';
+
+            if (tasks.length === 0) {
+                rows = `<tr><td colspan="4" class="text-center text-muted">> NO HAY DIRECTIVAS ASIGNADAS EN ESTE SECTOR.</td></tr>`;
+            } else {
+                tasks.forEach(task => {
+                    rows += `
+                    <tr>
+                        <td class="text-white font-weight-bold">> ${task.title}</td>
+                        <td style="font-size: 1.1rem; opacity: 0.8;">${task.desc}</td>
+                        <td class="text-warning">${task.date}</td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-term px-2 py-0 me-1" onclick="editTask(${task.id})">EDIT</button>
+                            <button class="btn btn-sm btn-term btn-term-danger px-2 py-0" onclick="deleteTask(${task.id})">DEL</button>
+                        </td>
+                    </tr>
+                `;
+                });
+            }
+            $('#task-table-body').html(rows);
+        }
+
+        // FUNCIÓN PARA SOLICITAR EDICIÓN (PRE-UPDATE)
+        function editTask(id) {
+            let tasks = JSON.parse(localStorage.getItem('sector4_tasks'));
+            let task = tasks.find(t => t.id == id);
+
+            if (task) {
+                $('#task-id').val(task.id);
+                $('#task-title').val(task.title);
+                $('#task-desc').val(task.desc);
+                $('#task-date').val(task.date);
+
+                // Cambiar textos de la interfaz a modo edición
+                $('#form-action-title').text('> MODIFICAR DIRECTIVA ID: ' + task.id).addClass('text-warning');
+                $('#btn-submit').text('REESCRIBIR REGISTRO').removeClass('btn-term-success').addClass('btn-term-success');
+                $('#btn-cancel').show();
+            }
+        }
+
+        // FUNCIÓN PARA ELIMINAR REGISTRO (DELETE)
+        function deleteTask(id) {
+            if (confirm('> ¿CONFIRMA ELIMINAR ESTA DIRECTIVA DE LA MEMORIA CENTRAL?')) {
+                let tasks = JSON.parse(localStorage.getItem('sector4_tasks'));
+                tasks = tasks.filter(t => t.id != id);
+                localStorage.setItem('sector4_tasks', JSON.stringify(tasks));
+
+                // Si eliminamos mientras editábamos la misma tarea, reiniciamos el formulario
+                if ($('#task-id').val() == id) { resetForm(); }
+
+                renderTasks();
+            }
+        }
+
+        // LIMPIAR FORMULARIO
+        function resetForm() {
+            $('#crud-form')[0].reset();
+            $('#task-id').val('');
+            $('#form-action-title').text('> ASIGNAR NUEVA DIRECTIVA').removeClass('text-warning');
+            $('#btn-submit').text('EJECUTAR / INYECTAR').addClass('btn-term-success');
+            $('#btn-cancel').hide();
+        }
+    </script>
+</body>
+
+</html>

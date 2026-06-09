@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terminal de Acceso - Sector 4 Dashboard</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --term-color: #ff3300;
+            --term-bg: #050505;
+            --term-glow: 0 0 10px rgba(255, 51, 0, 0.8);
+            --term-green: #00ff66;
+        }
+
+        body,
+        html {
+            background-color: var(--term-bg);
+            color: var(--term-color);
+            font-family: 'VT323', monospace;
+            font-size: 1.3rem;
+            min-height: 100vh;
+        }
+
+        /* Efecto CRT Scanlines */
+        .crt-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+                linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 3px, 3px 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* --- ESTILOS DEL NAVBAR RETRO --- */
+        .navbar-retro {
+            border-bottom: 2px solid var(--term-color);
+            background-color: rgba(10, 0, 0, 0.9) !important;
+            box-shadow: 0 0 15px rgba(255, 51, 0, 0.3);
+        }
+
+        .navbar-retro .navbar-brand,
+        .navbar-retro .nav-link,
+        .navbar-retro .navbar-text {
+            color: var(--term-color) !important;
+            text-transform: uppercase;
+        }
+
+        .navbar-retro .nav-link:hover {
+            color: #fff !important;
+            text-shadow: var(--term-glow);
+        }
+
+        /* Personalización del botón hamburguesa para que sea naranja */
+        .navbar-toggler-retro {
+            border: 1px solid var(--term-color) !important;
+            padding: 0.25rem 0.5rem;
+        }
+
+        /* Icono de hamburguesa personalizado con líneas CSS */
+        .toggler-icon-custom {
+            display: inline-block;
+            width: 1.5em;
+            height: 1.5em;
+            vertical-align: middle;
+            background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='%23ff3300' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 100%;
+        }
+
+        /* Contenedores estilo terminal */
+        .term-box {
+            border: 2px solid var(--term-color);
+            box-shadow: inset 0 0 15px rgba(255, 51, 0, 0.4), 0 0 15px rgba(255, 51, 0, 0.2);
+            background-color: rgba(10, 0, 0, 0.85);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .term-box::before {
+            content: attr(data-title);
+            position: absolute;
+            top: -13px;
+            left: 15px;
+            background: var(--term-bg);
+            padding: 0 8px;
+            font-size: 1rem;
+            letter-spacing: 1px;
+        }
+
+        .text-online {
+            color: var(--term-green);
+            text-shadow: 0 0 8px rgba(0, 255, 102, 0.6);
+        }
+
+        .btn-term-action {
+            background-color: transparent;
+            color: var(--term-color);
+            border: 1px solid var(--term-color);
+            border-radius: 0;
+            font-family: 'VT323', monospace;
+            font-size: 1.3rem;
+            width: 100%;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn-term-action:hover {
+            background-color: var(--term-color);
+            color: #000;
+            box-shadow: 0 0 12px var(--term-color);
+        }
+
+        /* --- ARQUITECTURA DE REORDENAMIENTO CSS --- */
+        .dashboard-grid {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .block-status {
+            order: 1;
+        }
+
+        .block-main {
+            order: 2;
+        }
+
+        .block-logs {
+            order: 3;
+        }
+
+        @media (min-width: 992px) {
+            .dashboard-grid {
+                display: grid;
+                grid-template-columns: 3fr 9fr;
+                grid-gap: 15px;
+            }
+
+            .block-status {
+                grid-column: 1;
+                grid-row: 1 / 3;
+                order: unset;
+            }
+
+            .block-main {
+                grid-column: 2;
+                grid-row: 1;
+                order: unset;
+            }
+
+            .block-logs {
+                grid-column: 2;
+                grid-row: 2;
+                order: unset;
+            }
+        }
+
+        .table-retro {
+            color: var(--term-color);
+            font-size: 1.2rem;
+        }
+
+        .table-retro th {
+            border-bottom: 2px dashed var(--term-color) !important;
+        }
+
+        .table-retro td {
+            border-bottom: 1px dashed rgba(255, 51, 0, 0.3) !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="crt-overlay"></div>
+
+    <nav class="navbar navbar-expand-lg navbar-retro fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">> S4_TERMINAL</a>
+
+            <button class="navbar-toggler navbar-toggler-retro" type="button" data-bs-toggle="collapse"
+                data-bs-top="#navbarContenido" data-bs-target="#navbarContenido" aria-controls="navbarContenido"
+                aria-expanded="false" aria-label="Toggle navigation">
+                <span class="toggler-icon-custom"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarContenido">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">[ NÚCLEO ]</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">[ REDES ]</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">[ SEGURIDAD ]</a>
+                    </li>
+                </ul>
+
+                <div class="d-flex align-items-lg-center flex-column flex-lg-row">
+                    <span class="navbar-text me-lg-3 mb-2 mb-lg-0 text-white">
+                        OP: Angel Bri_
+                    </span>
+                    <a href="#" class="nav-link text-danger"
+                        onclick="alert('CERRANDO CONEXIÓN SECORES...'); window.location.reload();">
+                        [ CERRAR_SESIÓN ]
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid p-4" style="margin-top: 70px;">
+
+        <div class="dashboard-grid">
+
+            <div class="term-box block-status" data-title="SECTOR_4_STATUS">
+                <h4 class="text-center text-danger blink mb-3">SISTEMA COMPROMETIDO</h4>
+
+                <div class="mb-3">
+                    <span class="d-block">> UNIDAD:</span>
+                    <span class="ps-3 text-white">Delta-7 (Terminal Móvil)</span>
+                </div>
+                <div class="mb-3">
+                    <span class="d-block">> NIVEL DE ACCESO:</span>
+                    <span class="ps-3 text-white">Clase 03</span>
+                </div>
+                <div class="mb-3">
+                    <span class="d-block">> ALERTAS ACTIVAS:</span>
+                    <span class="ps-3 text-danger">[2] CRÍTICAS</span>
+                </div>
+                <div class="mb-4">
+                    <span class="d-block">> ESTADO SERVIDOR:</span>
+                    <span class="ps-3 text-online">EN LÍNEA_</span>
+                </div>
+
+                <hr class="border-danger">
+
+                <button class="btn btn-term-action" onclick="alert('Ejecutando diagnóstico...')">DIAGNÓSTICO</button>
+                <button class="btn btn-term-action" onclick="alert('Alertas revisadas.')">REVISAR ALERTAS</button>
+            </div>
+
+            <div class="term-box block-main" data-title="INFORMACIÓN_DE_SESIÓN">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <h5>> USUARIO ACTUAL_</h5>
+                        <p class="m-0 text-white ps-2">OPERARIO: C. JENSEN</p>
+                        <p class="m-0 text-white ps-2">ID: 01233425578</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h5>> ACCESO RECIENTE_</h5>
+                        <p class="m-0 ps-2">2026-06-08 14:32 - <span class="text-online">AUTORIZADO</span></p>
+                        <p class="m-0 ps-2">2026-06-07 09:15 - <span class="text-online">AUTORIZADO</span></p>
+                    </div>
+                </div>
+
+                <h5 class="mt-3">> REGISTROS DEL SECTOR_</h5>
+                <div class="table-responsive">
+                    <table class="table table-dark table-retro bg-transparent m-0">
+                        <thead>
+                            <tr>
+                                <th>NODO</th>
+                                <th>TIPO DATA</th>
+                                <th>ESTADO</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>NODO-01</td>
+                                <td>HINNEA_SYS</td>
+                                <td class="text-online">98% SYNC</td>
+                            </tr>
+                            <tr>
+                                <td>NODO-02</td>
+                                <td>CYBER_RECORDS</td>
+                                <td class="text-online">ESTABLE</td>
+                            </tr>
+                            <tr>
+                                <td>NODO-03</td>
+                                <td>CORE_TEMP</td>
+                                <td class="text-danger">OVERHEAT [!]</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="term-box block-logs" data-title="LOGS_DEL_SISTEMA">
+                <div style="font-size: 1.1rem; max-height: 120px; overflow-y: auto; opacity: 0.8;">
+                    <p class="m-0">> [2026-06-08 15:01:02] Solicitud de sincronización de datos entrante...</p>
+                    <p class="m-0">> [2026-06-08 15:01:05] Conexión establecida desde terminal de Cordova.</p>
+                    <p class="m-0 text-danger">> [2026-06-08 15:01:06] ADVERTENCIA: Sector de memoria 4B comprometido.
+                    </p>
+                    <p class="m-0 text-online">> [2026-06-08 15:01:10] Cortafuegos de emergencia estabilizado.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="cordova.js"></script>
+</body>
+
+</html>
